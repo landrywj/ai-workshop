@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List, Any, Optional
 from flask import Flask, jsonify, Response
-from models import init_db, db, Dog, Breed
+from models import init_db, db, Dog, Breed, Cat
 
 # Get the server directory path
 base_dir: str = os.path.abspath(os.path.dirname(__file__))
@@ -65,7 +65,33 @@ def get_dog(id: int) -> tuple[Response, int] | Response:
     
     return jsonify(dog)
 
-## HERE
+@app.route('/api/cats/<int:id>', methods=['GET'])
+def get_cat(id: int) -> tuple[Response, int] | Response:
+    # Query the specific cat by ID
+    cat_query = db.session.query(
+        Cat.id,
+        Cat.name,
+        Cat.age,
+        Cat.description,
+        Cat.gender,
+        Cat.status
+    ).filter(Cat.id == id).first()
+    
+    # Return 404 if cat not found
+    if not cat_query:
+        return jsonify({"error": "Cat not found"}), 404
+    
+    # Convert the result to a dictionary
+    cat: Dict[str, Any] = {
+        'id': cat_query.id,
+        'name': cat_query.name,
+        'age': cat_query.age,
+        'description': cat_query.description,
+        'gender': cat_query.gender,
+        'status': cat_query.status.name
+    }
+    
+    return jsonify(cat)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5100) # Port 5100 to avoid macOS conflicts
